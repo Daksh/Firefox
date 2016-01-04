@@ -1,0 +1,15 @@
+#!/bin/bash
+
+TMPDIR=/tmp/flash.$$
+
+# find the isolation directory
+for ib in $(sudo find /home/olpc/isolation/1/gid_to_data_dir -name 'install_flash*.tar.gz'); do
+  # find the right gid/uid
+  gid=$(echo $ib | sed -ne 's:^.*/gid_to_data_dir/\([^/]*\)/.*:\1:p')
+  mkdir $TMPDIR
+  sudo chown -R $gid.$gid $TMPDIR
+  su $gid -c "tar -C $TMPDIR -xf $ib"
+  su $gid -c "HOME=/home/olpc/isolation/1/gid_to_data_dir/$gid $TMPDIR/*/flashplayer-installer"
+  # cleanup
+  su $gid -c "/bin/rm -rf $TMPDIR $ib"
+done

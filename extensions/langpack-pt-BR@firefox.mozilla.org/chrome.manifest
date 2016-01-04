@@ -1,0 +1,20 @@
+locale necko pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/necko/
+locale pippki pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/pippki/
+locale pipnss pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/pipnss/
+locale cookie pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/cookie/
+locale autoconfig pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/autoconfig/
+locale places pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/places/
+locale help pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/help/
+locale global pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/global/
+locale global-region pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/global-region/
+locale alerts pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/alerts/
+locale mozapps pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/mozapps/
+locale passwordmgr pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/passwordmgr/
+locale global-platform pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/global-platform/
+locale reporter pt-BR jar:chrome/pt-BR.jar!/locale/pt-BR/reporter/
+override chrome://mozapps/locale/downloads/settingsChange.dtd chrome://browser/locale/downloads/settingsChange.dtd
+locale browser pt-BR jar:chrome/pt-BR.jar!/locale/browser/
+override chrome://global/locale/appstrings.properties chrome://browser/locale/appstrings.properties
+override chrome://global/locale/netErrorApp.dtd chrome://browser/locale/netError.dtd
+locale browser-region pt-BR jar:chrome/pt-BR.jar!/locale/browser-region/
+locale branding pt-BR jar:chrome/pt-BR.jar!/locale/branding/

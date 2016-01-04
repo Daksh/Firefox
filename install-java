@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# find the isolation directory
+for ib in $(sudo find /home/olpc/isolation/1/gid_to_data_dir -name 'jre-*-linux-*.bin'); do
+  # find the right gid/uid
+  gid=$(echo $ib | sed -ne 's:^.*/gid_to_data_dir/\([^/]*\)/.*:\1:p')
+
+  HOMEDIR=/home/olpc/isolation/1/gid_to_data_dir/$gid
+
+  su $gid -c "/bin/rm -rf $HOMEDIR/jre*"
+  su $gid -c "cd $HOMEDIR && HOME=$HOMEDIR /bin/sh $ib && /bin/rm -rf $ib"
+  su $gid -c "ln -sf $HOMEDIR/jre*/plugin/i386/ns7/libjavaplugin*.so $HOMEDIR/.mozilla/plugins/"
+done

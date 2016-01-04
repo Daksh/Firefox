@@ -1,0 +1,15 @@
+/* see http://groups.google.com/group/mozilla.support.firefox/msg/1157f8348ee7211d */
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"); /* set default namespace to XUL */
+@namespace html url("http://www.w3.org/1999/xhtml"); /* namespace for
+HTML elements */
+@namespace xbl url("http://www.mozilla.org/xbl"); /* namespace for XBL
+elements */
+
+/* disable "native" gtk theming for HTML checkboxes, since our sugar gtk theme
+ * draws the checkboxes the wrong size. */
+html|input[type="checkbox"] { -moz-appearance: none; }
+/* for XUL elements, tweak the menu spacing manually. */
+.menu-iconic-left, .menu-iconic-icon { width: 28px !important; }
+.menu-iconic-icon { height: 28px !important; }
+menubar > menu menuitem, menubar > menu menu { font-size: 22px !important; }
+.menu-text { -moz-margin-start: 34px !important; }

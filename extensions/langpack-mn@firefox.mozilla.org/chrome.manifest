@@ -1,0 +1,20 @@
+locale necko mn jar:chrome/mn.jar!/locale/mn/necko/
+locale pippki mn jar:chrome/mn.jar!/locale/mn/pippki/
+locale pipnss mn jar:chrome/mn.jar!/locale/mn/pipnss/
+locale passwordmgr mn jar:chrome/mn.jar!/locale/mn/passwordmgr/
+locale places mn jar:chrome/mn.jar!/locale/mn/places/
+locale global-region mn jar:chrome/mn.jar!/locale/mn/global-region/
+locale cookie mn jar:chrome/mn.jar!/locale/mn/cookie/
+locale alerts mn jar:chrome/mn.jar!/locale/mn/alerts/
+locale global mn jar:chrome/mn.jar!/locale/mn/global/
+locale help mn jar:chrome/mn.jar!/locale/mn/help/
+locale mozapps mn jar:chrome/mn.jar!/locale/mn/mozapps/
+locale autoconfig mn jar:chrome/mn.jar!/locale/mn/autoconfig/
+locale global-platform mn jar:chrome/mn.jar!/locale/mn/global-platform/
+locale reporter mn jar:chrome/mn.jar!/locale/mn/reporter/
+override chrome://mozapps/locale/downloads/settingsChange.dtd chrome://browser/locale/downloads/settingsChange.dtd
+locale browser mn jar:chrome/mn.jar!/locale/browser/
+locale browser-region mn jar:chrome/mn.jar!/locale/browser-region/
+override chrome://global/locale/appstrings.properties chrome://browser/locale/appstrings.properties
+override chrome://global/locale/netErrorApp.dtd chrome://browser/locale/netError.dtd
+locale branding mn jar:chrome/mn.jar!/locale/branding/
