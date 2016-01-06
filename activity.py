@@ -65,7 +65,7 @@ class FirefoxActivity(activity.Activity):
         self.set_canvas(vt)
         vt.show()
 
-        vt.feed_child("cd $SUGAR_BUNDLE_PATH\n", -1)
+        vt.feed_child("cd $SUGAR_BUNDLE_PATH/bin\n", -1)
         vt.feed_child("export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH\n", -1)
         vt.feed_child("./firefox -fullscreen; exit\n", -1)
 
