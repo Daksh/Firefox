@@ -59,11 +59,15 @@ class FirefoxActivity(activity.Activity):
         
         vt = Vte.Terminal()
         vt.connect("child-exited", self.exit)
-        vt.spawn_sync(Vte.PtyFlags.DEFAULT, os.environ["HOME"],
+        try:
+        	vt.spawn_sync(Vte.PtyFlags.DEFAULT, os.environ["HOME"],
+        		["/bin/bash"], [], GLib.SpawnFlags.DO_NOT_REAP_CHILD,
+            	None, None)
         #replacement for spawn_sync for outdated Vte below
-        #vt.fork_command_full(Vte.PtyFlags.DEFAULT, os.environ["HOME"], 
-            ["/bin/bash"], [], GLib.SpawnFlags.DO_NOT_REAP_CHILD,
-            None, None)
+        except:
+        	vt.fork_command_full(Vte.PtyFlags.DEFAULT, os.environ["HOME"], 
+	            ["/bin/bash"], [], GLib.SpawnFlags.DO_NOT_REAP_CHILD,
+            	None, None)
         self.set_canvas(vt)
         vt.show()
 
