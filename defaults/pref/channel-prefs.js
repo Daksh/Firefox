@@ -1,2 +1,5 @@
-//@line 2 "/builds/tinderbox/Fx-Mozilla1.9-Release/Linux_2.6.18-53.1.13.el5_Depend/mozilla/browser/app/profile/channel-prefs.js"
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 pref("app.update.channel", "release");
