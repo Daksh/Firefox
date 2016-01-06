@@ -1,48 +1,15 @@
 #!/bin/sh
 #
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is mozilla.org code.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either of the GNU General Public License Version 2 or later (the "GPL"),
-# or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 cmdname=`basename "$0"`
 MOZ_DIST_BIN=`dirname "$0"`
 MOZ_DEFAULT_NAME="./${cmdname}-bin"
 MOZ_APPRUNNER_NAME="./mozilla-bin"
-MOZ_VIEWER_NAME="./viewer"
 MOZ_PROGRAM=""
 
-exitcode=0
+exitcode=1
 #
 ##
 ## Functions
@@ -60,23 +27,22 @@ echo ""
 echo "    -d debugger          Debugger to use."
 echo "    --debugger debugger"
 echo ""
+echo "    -a debugger_args     Arguments passed to [debugger]."
+echo "    --debugger-args debugger_args"
+echo ""
 echo "  Examples:"
-echo ""
-echo "  Run the viewer"
-echo ""
-echo "    ${cmdname} viewer"
 echo ""
 echo "  Run the mozilla-bin binary"
 echo ""
 echo "    ${cmdname} mozilla-bin"
 echo ""
-echo "  Debug the viewer in a debugger"
-echo ""
-echo "    ${cmdname} -g viewer"
-echo ""
 echo "  Debug the mozilla-bin binary in gdb"
 echo ""
 echo "    ${cmdname} -g mozilla-bin -d gdb"
+echo ""
+echo "  Run mozilla-bin under valgrind with arguments"
+echo ""
+echo "    ${cmdname} -g -d valgrind -a '--tool=memcheck --leak-check=full' mozilla-bin"
 echo ""
 	return 0
 }
@@ -105,17 +71,17 @@ moz_test_binary()
 ##########################################################################
 moz_get_debugger()
 {
-	debuggers="ddd gdb dbx bdb"
+	debuggers="ddd gdb dbx bdb native-gdb"
 	debugger="notfound"
 	done="no"
 	for d in $debuggers
 	do
-		moz_test_binary /bin/type
+		moz_test_binary /bin/which
 		if [ $? -eq 1 ]
 		then
-			dpath=`type ${d} | awk '{print $3;}' | sed -e 's/\.$//'`	
-		else 	
 			dpath=`which ${d}`	
+		else 	
+			dpath=`LC_MESSAGES=C type ${d} | awk '{print $3;}' | sed -e 's/\.$//'`	
 		fi
 		if [ -x "$dpath" ]
 		then
@@ -138,63 +104,10 @@ moz_run_program()
 		moz_bail "Cannot execute $prog."
 	fi
 	##
-	## Use md5sum to crc a core file.  If md5sum is not found on the system,
-	## then don't debug core files.
-	##
-	moz_test_binary /bin/type
-	if [ $? -eq 1 ]
-	then
-		crc_prog=`type md5sum 2>/dev/null | awk '{print $3;}' 2>/dev/null | sed -e 's/\.$//'`
-	else
-		crc_prog=`which md5sum 2>/dev/null`
-	fi
-	if [ -x "$crc_prog" ]
-	then
-		DEBUG_CORE_FILES=1
-	fi
-	if [ "$DEBUG_CORE_FILES" ]
-	then
-		crc_old=
-		if [ -f core ]
-		then
-			crc_old=`$crc_prog core | awk '{print $1;}' `
-		fi
-	fi
-	##
 	## Run the program
 	##
-	"$prog" ${1+"$@"}
+	exec "$prog" ${1+"$@"}
 	exitcode=$?
-	if [ "$DEBUG_CORE_FILES" ]
-	then
-		if [ -f core ]
-		then
-			crc_new=`$crc_prog core | awk '{print $1;}' `
-		fi
-	fi
-	if [ "$crc_old" != "$crc_new" ]
-	then
-		printf "\n\nOh no!  %s just dumped a core file.\n\n" $prog
-		printf "Do you want to debug this ? "
-		printf "You need a lot of memory for this, so watch out ? [y/n] "
-		read ans
-		if [ "$ans" = "y" ]
-		then
-			debugger=`moz_get_debugger`
-			if [ -x "$debugger" ]
-			then
-				echo "$debugger $prog core"
-
-				# See http://www.mozilla.org/unix/debugging-faq.html
-				# For why LD_BIND_NOW is needed
-				LD_BIND_NOW=1; export LD_BIND_NOW
-
-				$debugger "$prog" core
-			else
-				echo "Could not find a debugger on your system."
-			fi
-		fi
-	fi
 }
 ##########################################################################
 moz_debug_program()
@@ -209,45 +122,40 @@ moz_debug_program()
 	fi
 	if [ -n "$moz_debugger" ]
 	then
-		moz_test_binary /bin/type
+		moz_test_binary /bin/which
 		if [ $? -eq 1 ]
 		then	
-			debugger=`type $moz_debugger | awk '{print $3;}' | sed -e 's/\.$//'` 
-		else
 			debugger=`which $moz_debugger` 
+		else
+			debugger=`LC_MESSAGES=C type $moz_debugger | awk '{print $3;}' | sed -e 's/\.$//'` 
 		fi	
 	else
 		debugger=`moz_get_debugger`
 	fi
     if [ -x "$debugger" ] 
     then
-        tmpfile=`mktemp /tmp/mozargs.XXXXXX` || { echo "Cannot create temporary file" >&2; exit 1; }
-        trap " [ -f \"$tmpfile\" ] && /bin/rm -f -- \"$tmpfile\"" 0 1 2 3 13 15
-        # echo -n isn't portable, so pipe through perl -pe chomp instead
-        echo "set args" | perl -pe 'chomp' > $tmpfile
-        for PARAM in "$@"
-        do
-            echo " '$PARAM'" | perl -pe 'chomp' >> $tmpfile
-        done
-        echo >> $tmpfile
 # If you are not using ddd, gdb and know of a way to convey the arguments 
 # over to the prog then add that here- Gagan Saksena 03/15/00
         case `basename $debugger` in
-            gdb) echo "$debugger $prog -x $tmpfile"
-                $debugger "$prog" -x $tmpfile
+            native-gdb) echo "$debugger $moz_debugger_args --args $prog" ${1+"$@"}
+                exec "$debugger" $moz_debugger_args --args "$prog" ${1+"$@"}
+                exitcode=$?
+                ;;
+            gdb) echo "$debugger $moz_debugger_args --args $prog" ${1+"$@"}
+                exec "$debugger" $moz_debugger_args --args "$prog" ${1+"$@"}
 		exitcode=$?
                 ;;
-            ddd) echo "$debugger --debugger \"gdb -x $tmpfile\" $prog"
-                $debugger --debugger "gdb -x $tmpfile" "$prog"
+            ddd) echo "$debugger $moz_debugger_args --gdb -- --args $prog" ${1+"$@"}
+		exec "$debugger" $moz_debugger_args --gdb -- --args "$prog" ${1+"$@"}
 		exitcode=$?
                 ;;
-            *) echo "$debugger $prog ${1+"$@"}"
-                $debugger "$prog" ${1+"$@"}
+            *) echo "$debugger $moz_debugger_args $prog ${1+"$@"}"
+                exec $debugger $moz_debugger_args "$prog" ${1+"$@"}
 		exitcode=$?
                 ;;
         esac
     else
-        echo "Could not find a debugger on your system." 
+        moz_bail "Could not find a debugger on your system."
     fi
 }
 ##########################################################################
@@ -256,6 +164,7 @@ moz_debug_program()
 ##
 moz_debug=0
 moz_debugger=""
+moz_debugger_args=""
 #
 ##
 ## Parse the command line
@@ -273,6 +182,15 @@ do
 	shift 2
       else
         echo "-d requires an argument"
+        exit 1
+      fi
+      ;;
+    -a | --debugger-args)
+      moz_debugger_args=$2;
+      if [ "${moz_debugger_args}" != "" ]; then
+	shift 2
+      else
+        echo "-a requires an argument"
         exit 1
       fi
       ;;
@@ -301,11 +219,6 @@ then
 	if [ -x "$MOZ_DEFAULT_NAME" ]
 	then
 		MOZ_PROGRAM=$MOZ_DEFAULT_NAME
-	## Try viewer (this should be deprecated)
-	## 
-	elif [ -x "$MOZ_VIEWER_NAME" ]
-	then
-		MOZ_PROGRAM=$MOZ_VIEWER_NAME
 	##
 	## Try mozilla-bin
 	## 
@@ -340,49 +253,53 @@ fi
 ##
 ## When a shared library is a symbolic link, $ORIGIN will be replaced with
 ## the real path (i.e., what the symbolic link points to) by the runtime
-## linker.  For example, if dist/bin/libmozjs.so is a symbolic link to
-## js/src/libmozjs.so, $ORIGIN will be "js/src" instead of "dist/bin".
-## So the runtime linker will use "js/src" NOT "dist/bin" to locate the
-## other shared libraries that libmozjs.so depends on.  This only happens
+## linker.  For example, if dist/bin/libxul.so is a symbolic link to
+## toolkit/library/libxul.so, $ORIGIN will be "toolkit/library" instead of "dist/bin".
+## So the runtime linker will use "toolkit/library" NOT "dist/bin" to locate the
+## other shared libraries that libxul.so depends on.  This only happens
 ## when a user (developer) tries to start firefox, thunderbird, or seamonkey
 ## under dist/bin. To solve the problem, we should rely on LD_LIBRARY_PATH
 ## to locate shared libraries.
 ##
 ## Note: 
-##  We choose libmozjs.so as a representative shared library. If it is 
-##  a symbolic link, all other shared libraries are symbolic links also.
-if [ `uname -s` != "SunOS" -o -h "$MOZ_DIST_BIN/libmozjs.so" ]
+##  We test $MOZ_DIST_BIN/*.so. If any of them is a symbolic link,
+##  we need to set LD_LIBRARY_PATH.
+##########################################################################
+moz_should_set_ld_library_path()
+{
+	[ `uname -s` != "SunOS" ] && return 0
+	for sharedlib in $MOZ_DIST_BIN/*.so
+	do
+		[ -h $sharedlib ] && return 0
+	done
+	return 1
+}
+if moz_should_set_ld_library_path
 then
-	LD_LIBRARY_PATH=${MOZ_DIST_BIN}:${MOZ_DIST_BIN}/plugins:${MRE_HOME}${LD_LIBRARY_PATH+":$LD_LIBRARY_PATH"}
+	LD_LIBRARY_PATH=${MOZ_DIST_BIN}:${MOZ_DIST_BIN}/plugins:${MRE_HOME}${LD_LIBRARY_PATH:+":$LD_LIBRARY_PATH"}
 fi 
 
 if [ -n "$LD_LIBRARYN32_PATH" ]
 then
-	LD_LIBRARYN32_PATH=${MOZ_DIST_BIN}:${MOZ_DIST_BIN}/plugins:${MRE_HOME}${LD_LIBRARYN32_PATH+":$LD_LIBRARYN32_PATH"}
+	LD_LIBRARYN32_PATH=${MOZ_DIST_BIN}:${MOZ_DIST_BIN}/plugins:${MRE_HOME}${LD_LIBRARYN32_PATH:+":$LD_LIBRARYN32_PATH"}
 fi
 if [ -n "$LD_LIBRARYN64_PATH" ]
 then
-	LD_LIBRARYN64_PATH=${MOZ_DIST_BIN}:${MOZ_DIST_BIN}/plugins:${MRE_HOME}${LD_LIBRARYN64_PATH+":$LD_LIBRARYN64_PATH"}
+	LD_LIBRARYN64_PATH=${MOZ_DIST_BIN}:${MOZ_DIST_BIN}/plugins:${MRE_HOME}${LD_LIBRARYN64_PATH:+":$LD_LIBRARYN64_PATH"}
 fi
 if [ -n "$LD_LIBRARY_PATH_64" ]; then
-	LD_LIBRARY_PATH_64=${MOZ_DIST_BIN}:${MOZ_DIST_BIN}/plugins:${MRE_HOME}${LD_LIBRARY_PATH_64+":$LD_LIBRARY_PATH_64"}
+	LD_LIBRARY_PATH_64=${MOZ_DIST_BIN}:${MOZ_DIST_BIN}/plugins:${MRE_HOME}${LD_LIBRARY_PATH_64:+":$LD_LIBRARY_PATH_64"}
 fi
 #
 #
 ## Set SHLIB_PATH for HPUX
-SHLIB_PATH=${MOZ_DIST_BIN}:${MRE_HOME}${SHLIB_PATH+":$SHLIB_PATH"}
+SHLIB_PATH=${MOZ_DIST_BIN}:${MRE_HOME}${SHLIB_PATH:+":$SHLIB_PATH"}
 #
 ## Set LIBPATH for AIX
-LIBPATH=${MOZ_DIST_BIN}:${MRE_HOME}${LIBPATH+":$LIBPATH"}
+LIBPATH=${MOZ_DIST_BIN}:${MRE_HOME}${LIBPATH:+":$LIBPATH"}
 #
 ## Set DYLD_LIBRARY_PATH for Mac OS X (Darwin)
-DYLD_LIBRARY_PATH=${MOZ_DIST_BIN}:${MRE_HOME}${DYLD_LIBRARY_PATH+":$DYLD_LIBRARY_PATH"}
-#
-## Set LIBRARY_PATH for BeOS
-LIBRARY_PATH=${MOZ_DIST_BIN}:${MOZ_DIST_BIN}/components:${MRE_HOME}${LIBRARY_PATH+":$LIBRARY_PATH"}
-#
-## Set ADDON_PATH for BeOS
-ADDON_PATH=${MOZ_DIST_BIN}${ADDON_PATH+":$ADDON_PATH"}
+DYLD_LIBRARY_PATH=${MOZ_DIST_BIN}:${MRE_HOME}${DYLD_LIBRARY_PATH:+":$DYLD_LIBRARY_PATH"}
 #
 ## Solaris Xserver(Xsun) tuning - use shared memory transport if available
 if [ "$XSUNTRANSPORT" = "" ]
@@ -429,6 +346,7 @@ then
   echo "      MOZ_TOOLKIT=$MOZ_TOOLKIT"
   echo "        moz_debug=$moz_debug"
   echo "     moz_debugger=$moz_debugger"
+  echo "moz_debugger_args=$moz_debugger_args"
 fi
 #
 export MOZILLA_FIVE_HOME LD_LIBRARY_PATH
