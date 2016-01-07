@@ -72,8 +72,14 @@ class FirefoxActivity(activity.Activity):
         vt.show()
 
         vt.feed_child("cd $SUGAR_BUNDLE_PATH\n", -1)
+        vt.feed_child("$SUGAR_BUNDLE_PATH\n", -1)
+        vt.feed_child("pwd\n", -1)
+        vt.feed_child("$LD_LIBRARY_PATH\n", -1)
         vt.feed_child("export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH\n", -1)
+        vt.feed_child("$LD_LIBRARY_PATH\n", -1)
+        vt.feed_child("pwd\n", -1)
         vt.feed_child("./firefox -fullscreen; exit\n", -1)
 
     def exit(self, vt, data):
+    	print "exit function"
         self.close()
